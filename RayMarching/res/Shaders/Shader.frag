@@ -14,20 +14,31 @@ struct PointLight {
     float linear;
     float quadratic;
 
-     vec3 color;
+    vec3 color;
 };
 
+struct DirLight {
+    vec3 direction;
+
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 specular;
+
+    vec3 color;
+};
 
 struct Sphere {
 	float radius;
 	vec3 center;
 	vec3 color;
+	float reflection;
 };
 
 struct Cube {
 	vec3 halfSize;
 	vec3 center;
 	vec3 color;
+	float reflection;
 };
 
 // Types: 
@@ -46,6 +57,7 @@ struct Intersect {
 };
 
 #define MAX_DIST 100.0
+#define MAX_SHADOW_DIST 50.0
 #define eplison 0.01
 
 #define LIGHT_NUM 2
@@ -56,6 +68,7 @@ struct Intersect {
 uniform Sphere spheres[SPHERE_NUM];
 uniform Cube cubes[CUBE_NUM];
 uniform PointLight pointLights[LIGHT_NUM];
+uniform DirLight dirLight;
 // Camera
 uniform vec2 iResolution;
 uniform vec3 position;
@@ -65,10 +78,12 @@ uniform mat3 viewMatrix;
 float sphereSDF(vec3 pos, Sphere sphere);
 float cubeSDF(vec3 pos, Cube cube);
 float shadow(vec3 origin, vec3 lightPos, vec3 dir, Object obj);
+float shadow(vec3 origin, vec3 dir, Object obj);
 vec3 getSphereNormal(vec3 pos, Sphere sphere);
 vec3 getCubeNormal(vec3 pos, Cube cube);
-vec3 getColor(Intersect intersect, vec3 pos);
+vec3 getColor(Intersect intersect, vec3 pos, vec3 dir);
 vec3 rayMarch(vec3 pos, vec3 direction);
+vec3 calculateDirLight(DirLight light, vec3 normal, vec3 viewDir, vec3 color, Object obj);
 vec3 calculatePointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir, vec3 color, Object obj);
 vec3 calculateLight(vec3 pos, vec3 normal, vec3 inColor, Object obj);
 Intersect sceneDist(vec3 pos, vec3 direction);
@@ -102,6 +117,46 @@ float shadow(vec3 origin, vec3 lightPos, vec3 dir, Object obj) {
 	return 0.0;
 }
 
+float shadow(vec3 origin, vec3 dir, Object obj) {
+	Intersect intersect = {MAX_SHADOW_DIST, {0, LIGHT}};
+	vec3 pos = origin;
+	
+	while (distance(pos, origin) < MAX_SHADOW_DIST) {
+		intersect = sceneDist(pos, dir, obj.type, obj.idx);
+
+		if (intersect.dist < eplison) break;
+
+		pos += dir * intersect.dist;
+	}
+
+	if (intersect.obj.type == LIGHT) return 1.0;
+	return 0.0;
+}
+
+vec3 calculateDirLight(DirLight light, vec3 normal, vec3 viewDir, vec3 color, vec3 fragPos, Object obj) {
+    light.ambient *= light.color;
+    light.diffuse *= light.color;
+    light.specular *= light.color;
+
+    vec3 lightDir = normalize(-light.direction);
+    vec3 halfwayDir = normalize(lightDir - viewDir);
+
+    // diffuse shading
+    float diff = max(dot(normal, lightDir), 0.0);
+
+    // specular shading
+    float spec = pow(max(dot(normal, halfwayDir), 0.0), 10);
+
+    // combine results
+    vec3 ambient = light.ambient * color;
+    vec3 diffuse = light.diffuse * diff * color;
+    vec3 specular = light.specular * spec * color;
+
+    // Shadow
+    float shadow = shadow(fragPos, lightDir, obj);
+    return ambient + ((diffuse + specular) * shadow(fragPos, lightDir, obj));
+}
+
 vec3 calculatePointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir, vec3 color, Object obj) {
     light.ambient *= light.color;
     light.diffuse *= light.color;
@@ -128,6 +183,8 @@ vec3 calculatePointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewD
 
 vec3 calculateLight(vec3 pos, vec3 normal, vec3 inColor, Object obj) {
 	vec3 color = vec3(0.0);
+
+	color += calculateDirLight(dirLight, normal, inDir, inColor, pos, obj);
 
 	for (int i = 0; i < LIGHT_NUM; ++i)
 		color += calculatePointLight(pointLights[i], normal, pos, inDir, inColor, obj);
@@ -167,7 +224,7 @@ vec3 getCubeNormal(vec3 pos, Cube cube) {
 Intersect sceneDist(vec3 pos, vec3 direction) {
 	Intersect ans = {MAX_DIST, {0, 0}};
 		for (int i = 0; i < LIGHT_NUM; ++i) {
-			float dist = sphereSDF(pos, Sphere(1.0, pointLights[i].position, pointLights[i].color));
+			float dist = sphereSDF(pos, Sphere(1.0, pointLights[i].position, pointLights[i].color, 0.0));
 
 			if (dist < ans.dist) {
 				ans.dist = dist;
@@ -201,7 +258,7 @@ Intersect sceneDist(vec3 pos, vec3 direction, int type, int idx) {
 		for (int i = 0; i < LIGHT_NUM; ++i) {
 			if (type == LIGHT && idx == i) continue;
 
-			float dist = sphereSDF(pos, Sphere(1.0, pointLights[i].position, pointLights[i].color));
+			float dist = sphereSDF(pos, Sphere(1.0, pointLights[i].position, pointLights[i].color, 0.0));
 
 			if (dist < ans.dist) {
 				ans.dist = dist;
@@ -234,8 +291,42 @@ Intersect sceneDist(vec3 pos, vec3 direction, int type, int idx) {
 	return ans;
 }
 
-vec3 getColor(Intersect intersect, vec3 pos) {
+vec3 getReflection(vec3 origin, vec3 dir, Object obj) {
+	Intersect intersect = {MAX_DIST, {0, 0}};
+	vec3 pos = origin;
+
+	while (length(pos - origin) < MAX_DIST) {
+		intersect = sceneDist(pos, dir, obj.type, obj.idx);
+
+		if (intersect.dist < eplison) {
+			vec3 normal = vec3(0.0);
+			vec3 color = vec3(0.0);
+
+			switch (intersect.obj.type) {
+				case LIGHT:
+					return pointLights[intersect.obj.idx].color;
+					break;
+				case SPHERE:
+					normal = getSphereNormal(pos, spheres[intersect.obj.idx]);
+					return calculateLight(pos, normal, spheres[intersect.obj.idx].color, intersect.obj);
+					break;
+					case CUBE:
+					normal = getCubeNormal(pos, cubes[intersect.obj.idx]);
+					return calculateLight(pos, normal, cubes[intersect.obj.idx].color, intersect.obj);
+					break;
+			}
+		}
+
+		pos += dir * intersect.dist;
+	}
+
+	return vec3(0.0);
+}
+
+vec3 getColor(Intersect intersect, vec3 pos, vec3 dir) {
 	vec3 normal = vec3(0.0);
+	vec3 color = vec3(0.0);
+	float reflection = 0.0;
 
 	switch (intersect.obj.type) {
 		case LIGHT:
@@ -243,14 +334,21 @@ vec3 getColor(Intersect intersect, vec3 pos) {
 			break;
 		case SPHERE:
 			normal = getSphereNormal(pos, spheres[intersect.obj.idx]);
-			return calculateLight(pos, normal, spheres[intersect.obj.idx].color, intersect.obj);
+			color = calculateLight(pos, normal, spheres[intersect.obj.idx].color, intersect.obj);
+			reflection = spheres[intersect.obj.idx].reflection;
+
+			if (reflection == 0.0) return color;
 			break;
 		case CUBE:
 			normal = getCubeNormal(pos, cubes[intersect.obj.idx]);
-			return calculateLight(pos, normal, cubes[intersect.obj.idx].color, intersect.obj);
+			color = calculateLight(pos, normal, cubes[intersect.obj.idx].color, intersect.obj);
+			reflection = cubes[intersect.obj.idx].reflection;
+
+			if (reflection == 0.0) return color;
 			break;
 	}
-	return normal;
+
+	return mix(color, getReflection(pos, reflect(dir, normal), intersect.obj), reflection);
 }
 
 vec3 rayMarch(vec3 pos, vec3 direction) {
@@ -260,7 +358,7 @@ vec3 rayMarch(vec3 pos, vec3 direction) {
 		intersect = sceneDist(pos, direction);
 
 		if (intersect.dist < eplison) {
-			return getColor(intersect, pos);
+			return getColor(intersect, pos, direction);
 		}
 
 		pos += direction * intersect.dist;

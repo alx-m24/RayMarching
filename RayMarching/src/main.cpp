@@ -98,7 +98,7 @@ int main() {
 
 	glm::vec3 cubeSize = glm::vec3(20.0f, 1.0f, 20.0f);
 	glm::vec3 cubePos = { 0.0f, -1.5f, 0.0f };
-	glm::vec3 cubeColor = { 0.0f, 1.0f, 0.0f };
+	glm::vec3 cubeColor = { 0.7f, 0.7f, 0.7f };
 
 	glm::vec3 cubeSize2 = glm::vec3(1.0f);
 	glm::vec3 cubePos2 = { -2.5f, 0.5f, 2.0f };
@@ -172,23 +172,33 @@ int main() {
 		shader.use();
 
 		shader.setFloat("spheres[0].radius", radius);
+		shader.setFloat("spheres[0].reflection", 0.0);
 		shader.setVec3("spheres[0].center", spherePos);
 		shader.setVec3("spheres[0].color", sphereColor);
 		shader.setFloat("spheres[1].radius", radius_2);
+		shader.setFloat("spheres[0].reflection", 0.0);
 		shader.setVec3("spheres[1].center", spherePos_2);
 		shader.setVec3("spheres[1].color", sphereColor_2);
 
 		shader.setVec3("cubes[0].halfSize", cubeSize * 0.5f);
+		shader.setFloat("cubes[0].reflection", 0.8);
 		shader.setVec3("cubes[0].center", cubePos);
 		shader.setVec3("cubes[0].color", cubeColor);
+
 		shader.setVec3("cubes[1].halfSize", cubeSize2 * 0.5f);
+		shader.setFloat("cubes[1].reflection", 0.0);
 		shader.setVec3("cubes[1].center", cubePos2);
 		shader.setVec3("cubes[1].color", cubeColor2);
+
+		shader.setVec3("dirLight.direction", 0.0, -1.0, 0.0);
+		shader.setVec3("dirLight.color", 1.0f, 1.0f, 1.0f);
+		shader.setVec3("dirLight.ambient", 0.06f, 0.06f, 0.06f);
+		shader.setVec3("dirLight.diffuse", 0.6f, 0.6f, 0.6f);
 
 		shader.setVec3("pointLights[0].position", pointLightPositions[0]);
 		shader.setVec3("pointLights[0].color", 1.0f, 1.0f, 1.0f);
 		shader.setVec3("pointLights[0].ambient", 0.05f, 0.05f, 0.05f);
-		shader.setVec3("pointLights[0].diffuse", 0.8f, 0.8f, 0.8f);
+		shader.setVec3("pointLights[0].diffuse", 0.6f, 0.6f, 0.6f);
 		shader.setVec3("pointLights[0].specular", 1.0f, 1.0f, 1.0f);
 		shader.setFloat("pointLights[0].constant", 1.0f);
 		shader.setFloat("pointLights[0].linear", 0.09f);
@@ -197,7 +207,7 @@ int main() {
 		shader.setVec3("pointLights[1].position", pointLightPositions[1]);
 		shader.setVec3("pointLights[1].color", 1.0f, 1.0f, 1.0f);
 		shader.setVec3("pointLights[1].ambient", 0.05f, 0.05f, 0.05f);
-		shader.setVec3("pointLights[1].diffuse", 0.8f, 0.8f, 0.8f);
+		shader.setVec3("pointLights[1].diffuse", 0.6f, 0.6f, 0.6f);
 		shader.setVec3("pointLights[1].specular", 1.0f, 1.0f, 1.0f);
 		shader.setFloat("pointLights[1].constant", 1.0f);
 		shader.setFloat("pointLights[1].linear", 0.09f);
