@@ -141,6 +141,8 @@
     <ClCompile Include="src\Headers\imgui\imgui_impl_glfw.cpp" />
     <ClCompile Include="src\Headers\imgui\imgui_impl_opengl3.cpp" />
     <ClCompile Include="src\Headers\IO\Input.cpp" />
+    <ClCompile Include="src\Headers\LightingSystem.cpp" />
+    <ClCompile Include="src\Headers\Objects.cpp" />
     <ClCompile Include="src\Headers\Shaders\Shader.cpp" />
     <ClCompile Include="src\main.cpp" />
   </ItemGroup>
@@ -151,6 +153,8 @@
     <ClInclude Include="src\Headers\imgui\imgui_impl_opengl3.h" />
     <ClInclude Include="src\Headers\imgui\imgui_impl_opengl3_loader.h" />
     <ClInclude Include="src\Headers\IO\Input.hpp" />
+    <ClInclude Include="src\Headers\LightingSystem.hpp" />
+    <ClInclude Include="src\Headers\Objects.hpp" />
     <ClInclude Include="src\Headers\Shaders\Shader.hpp" />
   </ItemGroup>
   <ItemGroup>

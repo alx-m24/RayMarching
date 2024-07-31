@@ -36,15 +36,26 @@ struct Sphere {
 
 struct Cube {
 	vec3 halfSize;
-	vec3 center;
 	vec3 color;
+	mat4 inverseTransormation;
 	float reflection;
+	float rounding;
+};
+
+struct Capsule {
+	vec3 pos1;
+	vec3 pos2;
+	vec3 color;
+	mat4 inverseTransormation;
+	float reflection;
+	float radius;
 };
 
 // Types: 
 #define LIGHT 0
 #define SPHERE 1
 #define CUBE 2
+#define CAPSULE 3
 
 struct Object {
 	int type;
@@ -56,17 +67,20 @@ struct Intersect {
 	Object obj;
 };
 
-#define MAX_DIST 100.0
-#define MAX_SHADOW_DIST 50.0
+#define MAX_DIST 50.0
+#define MAX_SHADOW_DIST 25.0
 #define eplison 0.01
+#define NORMAL_INCREMENT 0.01
 
 #define LIGHT_NUM 2
 #define SPHERE_NUM 2
 #define CUBE_NUM 2
+#define CAPSULE_NUM 1
 
 // Objects
 uniform Sphere spheres[SPHERE_NUM];
 uniform Cube cubes[CUBE_NUM];
+uniform Capsule capsules[CAPSULE_NUM];
 uniform PointLight pointLights[LIGHT_NUM];
 uniform DirLight dirLight;
 // Camera
@@ -75,10 +89,17 @@ uniform vec3 position;
 uniform vec3 inDir;
 uniform mat3 viewMatrix;
 
+// Normal Increments
+vec3 dx = {NORMAL_INCREMENT, 0, 0};
+vec3 dy = {0, NORMAL_INCREMENT, 0};
+vec3 dz = {0, 0, NORMAL_INCREMENT};
+
 float sphereSDF(vec3 pos, Sphere sphere);
 float cubeSDF(vec3 pos, Cube cube);
+float capsuleSDF( vec3 pos, Capsule capsule);
 float shadow(vec3 origin, vec3 lightPos, vec3 dir, Object obj);
 float shadow(vec3 origin, vec3 dir, Object obj);
+vec3 getBend(vec3 p, float k);
 vec3 getSphereNormal(vec3 pos, Sphere sphere);
 vec3 getCubeNormal(vec3 pos, Cube cube);
 vec3 getColor(Intersect intersect, vec3 pos, vec3 dir);
@@ -90,7 +111,7 @@ Intersect sceneDist(vec3 pos, vec3 direction);
 Intersect sceneDist(vec3 pos, vec3 direction, int type, int idx);
 
 void main() {
-	vec2 aspectRatio = vec2(iResolution.x / iResolution.y, 1.0) * 0.25;
+	vec2 aspectRatio = vec2(iResolution.x / iResolution.y, 1.0) * 0.5;
 	vec2 uv = 2.0 * gl_FragCoord.xy / iResolution - 1.0;
 	uv *= aspectRatio;
     vec3 rayDirection = normalize(vec3(uv, -1.0)) * viewMatrix;
@@ -124,13 +145,15 @@ float shadow(vec3 origin, vec3 dir, Object obj) {
 	while (distance(pos, origin) < MAX_SHADOW_DIST) {
 		intersect = sceneDist(pos, dir, obj.type, obj.idx);
 
-		if (intersect.dist < eplison) break;
+		if (intersect.dist < eplison) {
+			if (intersect.obj.type != LIGHT) return 0.0;
+			else break;
+		}
 
 		pos += dir * intersect.dist;
 	}
 
-	if (intersect.obj.type == LIGHT) return 1.0;
-	return 0.0;
+	return 1.0;
 }
 
 vec3 calculateDirLight(DirLight light, vec3 normal, vec3 viewDir, vec3 color, vec3 fragPos, Object obj) {
@@ -197,8 +220,18 @@ float sphereSDF(vec3 pos, Sphere sphere) {
 }
 
 float cubeSDF(vec3 pos, Cube cube) {
-	vec3 d = abs(pos - cube.center) - cube.halfSize;
-    return length(max(d, 0.0)) + min(max(d.x, max(d.y, d.z)), 0.0);
+	pos = (cube.inverseTransormation * vec4(pos, 1.0)).xyz;
+
+	vec3 d = abs(pos) - cube.halfSize;
+    return length(max(d, 0.0)) + min(max(d.x, max(d.y, d.z)), 0.0) - cube.rounding;
+}
+
+float capsuleSDF(vec3 pos, Capsule capsule) {
+	pos = (capsule.inverseTransormation * vec4(pos, 1.0)).xyz;
+
+	vec3 pa = (pos - capsule.pos1), ba = capsule.pos2 - capsule.pos1;
+	float h = clamp( dot(pa,ba)/dot(ba,ba), 0.0, 1.0 );
+	return length( pa - ba*h ) - capsule.radius;
 }
 
 vec3 getSphereNormal(vec3 pos, Sphere sphere) {
@@ -206,7 +239,7 @@ vec3 getSphereNormal(vec3 pos, Sphere sphere) {
 }
 
 vec3 getCubeNormal(vec3 pos, Cube cube) {
-	vec3 relativePos = pos - cube.center;
+	/*vec3 relativePos = pos - cube.center;
     vec3 absRelativePos = abs(relativePos / cube.halfSize);
 
     float maxAxis = max(absRelativePos.x, max(absRelativePos.y, absRelativePos.z));
@@ -218,7 +251,23 @@ vec3 getCubeNormal(vec3 pos, Cube cube) {
     } else {
         return vec3(0.0, 0.0, sign(relativePos.z));
     }
-	return vec3(0.0);
+	return vec3(0.0);*/
+
+	vec3 normal = vec3(
+	(cubeSDF(pos + dx, cube) - cubeSDF(pos - dx, cube)),
+	(cubeSDF(pos + dy, cube) - cubeSDF(pos - dy, cube)),
+	(cubeSDF(pos + dz, cube) - cubeSDF(pos - dz, cube))
+);
+	return normalize(normal);
+}
+
+vec3 getCapsuleNormal(vec3 pos, Capsule capsule) {
+	vec3 normal = vec3(
+	(capsuleSDF(pos + dx, capsule) - capsuleSDF(pos - dx, capsule)),
+	(capsuleSDF(pos + dy, capsule) - capsuleSDF(pos - dy, capsule)),
+	(capsuleSDF(pos + dz, capsule) - capsuleSDF(pos - dz, capsule))
+);
+	return normalize(normal);
 }
 
 Intersect sceneDist(vec3 pos, vec3 direction) {
@@ -248,6 +297,15 @@ Intersect sceneDist(vec3 pos, vec3 direction) {
 				ans.dist = dist;
 				ans.obj.idx = i;
 				ans.obj.type = CUBE;
+			}
+		}
+		for (int i = 0; i < CAPSULE_NUM; ++i) {
+			float dist = capsuleSDF(pos, capsules[i]);
+
+			if (dist < ans.dist) {
+				ans.dist = dist;
+				ans.obj.idx = i;
+				ans.obj.type = CAPSULE;
 			}
 		}
 	return ans;
@@ -288,6 +346,17 @@ Intersect sceneDist(vec3 pos, vec3 direction, int type, int idx) {
 				ans.obj.type = CUBE;
 			}
 		}
+		for (int i = 0; i < CAPSULE_NUM; ++i) {
+			if (type == CAPSULE && idx == i) continue;
+
+			float dist = capsuleSDF(pos, capsules[i]);
+
+			if (dist < ans.dist) {
+				ans.dist = dist;
+				ans.obj.idx = i;
+				ans.obj.type = CAPSULE;
+			}
+		}
 	return ans;
 }
 
@@ -310,9 +379,13 @@ vec3 getReflection(vec3 origin, vec3 dir, Object obj) {
 					normal = getSphereNormal(pos, spheres[intersect.obj.idx]);
 					return calculateLight(pos, normal, spheres[intersect.obj.idx].color, intersect.obj);
 					break;
-					case CUBE:
+				case CUBE:
 					normal = getCubeNormal(pos, cubes[intersect.obj.idx]);
 					return calculateLight(pos, normal, cubes[intersect.obj.idx].color, intersect.obj);
+					break;
+				case CAPSULE:
+					normal = getCapsuleNormal(pos, capsules[intersect.obj.idx]);
+					return calculateLight(pos, normal, capsules[intersect.obj.idx].color, intersect.obj);
 					break;
 			}
 		}
@@ -343,6 +416,13 @@ vec3 getColor(Intersect intersect, vec3 pos, vec3 dir) {
 			normal = getCubeNormal(pos, cubes[intersect.obj.idx]);
 			color = calculateLight(pos, normal, cubes[intersect.obj.idx].color, intersect.obj);
 			reflection = cubes[intersect.obj.idx].reflection;
+
+			if (reflection == 0.0) return color;
+			break;
+		case CAPSULE:
+			normal = getCapsuleNormal(pos, capsules[intersect.obj.idx]);
+			color = calculateLight(pos, normal, capsules[intersect.obj.idx].color, intersect.obj);
+			reflection = capsules[intersect.obj.idx].reflection;
 
 			if (reflection == 0.0) return color;
 			break;
