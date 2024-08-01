@@ -12,7 +12,7 @@ struct Sphere {
 
 struct Cube {
 	glm::vec3 center = glm::vec3(0.0f);
-	glm::vec4 rotation = glm::vec4(0.0f);
+	glm::vec3 rotation = glm::vec3(0.0f);
 
 	glm::vec3 halfSize = glm::vec3(0.5f);
 	glm::vec3 color = glm::vec3(1.0f);
@@ -22,7 +22,7 @@ struct Cube {
 
 struct Capsule {
 	glm::vec3 center = glm::vec3(0.0f);
-	glm::vec4 rotation = glm::vec4(0.0f);
+	glm::vec3 rotation = glm::vec3(0.0f);
 
 	glm::vec3 pos1 = glm::vec3(0.0f);
 	glm::vec3 pos2 = glm::vec3(0.0f);

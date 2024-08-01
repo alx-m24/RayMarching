@@ -4,7 +4,10 @@ glm::mat4 getMatrix(Cube& cube)
 {
 	glm::mat4 model = glm::mat4(1.0f);
 	model = glm::translate(model, cube.center);
-	model = glm::rotate(model, cube.rotation.w, { cube.rotation.x, cube.rotation.y, cube.rotation.z });
+
+	model = glm::rotate(model, glm::radians(cube.rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
+	model = glm::rotate(model, glm::radians(cube.rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
+	model = glm::rotate(model, glm::radians(cube.rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
 
 	return model;
 }
@@ -13,7 +16,10 @@ glm::mat4 getMatrix(Capsule& capsule)
 {
 	glm::mat4 model = glm::mat4(1.0f);
 	model = glm::translate(model, capsule.center);
-	model = glm::rotate(model, capsule.rotation.w, { capsule.rotation.x, capsule.rotation.y, capsule.rotation.z });
+
+	model = glm::rotate(model, glm::radians(capsule.rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
+	model = glm::rotate(model, glm::radians(capsule.rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
+	model = glm::rotate(model, glm::radians(capsule.rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
 
 	return model;
 }

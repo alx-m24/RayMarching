@@ -10,16 +10,13 @@
 #include <GLFW/glfw3.h>
 // Other
 #include <iostream>
-// GUI
-#include "Headers/imgui/imgui.h"
-#include "Headers/imgui/imgui_impl_opengl3.h"
-#include "Headers/imgui/imgui_impl_glfw.h"
 // My headers
 #include "Headers/Shaders/Shader.hpp"
 #include "Headers/LightingSystem.hpp"
 #include "Headers/IO/Input.hpp"
 #include "Headers/Objects.hpp"
 #include "Headers/Camera.hpp"
+#include "Headers/GUI.hpp"
 
 using namespace IO;
 
@@ -94,10 +91,10 @@ int main() {
 	objects.addSphere({ 1.0f, {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 1.0f}, 0.0f });
 	objects.addSphere({ 0.58f, { 1.0f, 0.5f, -3.0f }, { 1.0f, 0.0f, 0.0f }, 0.0f });
 
-	objects.addCube({ { 0.0f, -1.5f, 0.0f }, { 1.0f, 1.0f, 1.0f, 0.0f }, {10.0f, 0.5f, 10.0f }, { 0.0f, 1.0f, 0.0f }, 0.0f, 0.0f });
-	objects.addCube({ { -2.5f, 0.5f, 2.0f }, { 1.0f, 1.0f, 1.0f, 0.0f }, {0.5f, 0.5f, 0.5f }, { 1.0f, 0.0f, 1.0f }, 0.0f, 0.5f });
+	objects.addCube({ { 0.0f, -1.5f, 0.0f }, { 0.0f, 0.0f, 0.0f }, {10.0f, 0.5f, 10.0f }, { 0.0f, 1.0f, 0.0f }, 0.0f, 0.0f });
+	objects.addCube({ { -2.5f, 0.5f, 2.0f }, { 0.0f, 0.0f, 0.0f }, {0.5f, 0.5f, 0.5f }, { 1.0f, 0.0f, 1.0f }, 0.0f, 0.5f });
 
-	objects.addCapsule({ { 0.0f, 2.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 0.0f }, { 1.0f,1.0f,-2.5f }, { 1.0f,1.0f,2.5f }, { 1.0f,1.0f,1.0f }, 0.0f, 1.0f });
+	objects.addCapsule({ { 0.0f, 2.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f,1.0f,-2.5f }, { 1.0f,1.0f,2.5f }, { 1.0f,1.0f,1.0f }, 0.0f, 1.0f });
 
 	LightingSystem lightSys;
 	lightSys.addPointLight(PointLight({ 0.0f, 5.0f, 0.0f }));
@@ -107,16 +104,7 @@ int main() {
 #pragma endregion
 
 #pragma region GUI
-	IMGUI_CHECKVERSION();
-	ImGui::CreateContext();
-	ImGuiIO& io = ImGui::GetIO(); (void)io;
-	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-
-	ImGui::StyleColorsDark();
-
-	ImGui_ImplGlfw_InitForOpenGL(window, true);
-	ImGui_ImplOpenGL3_Init("#version 420");
+	GUI gui(window, camera, objects, lightSys);
 #pragma endregion
 
 #pragma region Time Variables
@@ -138,14 +126,9 @@ int main() {
 		shader.use();
 		camera.update(window, shader, dt);
 
+		gui.update();
+
 		processInput(window);
-
-		ImGui_ImplOpenGL3_NewFrame();
-		ImGui_ImplGlfw_NewFrame();
-		ImGui::NewFrame();
-
-		ImGui::ShowMetricsWindow();
-
 #pragma endregion
 
 #pragma region Render
@@ -155,7 +138,7 @@ int main() {
 		shader.use();
 
 		objects.cubes[1].center.y = sin(time) + 1.5f;
-		objects.capsules[0].rotation.w = time;
+		objects.capsules[0].rotation.x = time * 10.0f;
 
 		objects.update(shader);
 		lightSys.update(shader);
@@ -163,8 +146,7 @@ int main() {
 		glBindVertexArray(VAO);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
-		ImGui::Render();
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+		gui.render();
 
 		glfwSwapBuffers(window);
 #pragma endregion
