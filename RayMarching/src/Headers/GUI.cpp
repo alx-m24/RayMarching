@@ -47,7 +47,7 @@ void GUI::lightAndCamWindow()
 void GUI::lighting()
 {
     ImGui::SeparatorText("Directional Light");
-    ImGui::BeginChild("Directional Lights", { 0.0f, 130.0f });
+    ImGui::BeginChild("Directional Lights", { 0.0f, 115.0f });
 
     DirectionalLight& dirLight = lightSys.dirLight;
     glm::vec3& dir = dirLight.direction;
@@ -65,10 +65,10 @@ void GUI::lighting()
     ImGui::EndChild();
 
     ImGui::SeparatorText("Point Lights");
-    ImGui::BeginChild("Point Lights", { 0, static_cast<float>(130 * lightSys.pointLights.size()) });
+    ImGui::BeginChild("Point Lights");
     for (int i = 0; i < lightSys.pointLights.size(); ++i) {
         if (i > 0) ImGui::Separator();
-        ImGui::BeginChild("PointLight" + i, { 0, 130 });
+        ImGui::BeginChild("PointLight" + i, { 0, 180 });
 
         PointLight& pointLight = lightSys.pointLights[i];
         glm::vec3& position = pointLight.position;
@@ -109,10 +109,10 @@ void GUI::myObjects()
     ImGui::Begin("Objects");
 
     ImGui::SeparatorText("Spheres");
-    ImGui::BeginChild("Spheres", { 0, static_cast<float>(130 * objects.spheres.size()) });
+    ImGui::BeginChild("Spheres", { 0, 95 * (float)objects.spheres.size()});
     for (int i = 0; i < objects.spheres.size(); ++i) {
         if (i > 0) ImGui::Separator();
-        ImGui::BeginChild("Sphere" + i, { 0, 130 });
+        ImGui::BeginChild("Sphere" + i, { 0, 90 });
 
         Sphere& sphere = objects.spheres[i];
         glm::vec3& position = sphere.center;
@@ -128,20 +128,20 @@ void GUI::myObjects()
     ImGui::EndChild();
 
     ImGui::SeparatorText("Cubes");
-    ImGui::BeginChild("Cubes", { 0, static_cast<float>(130 * objects.cubes.size()) });
+    ImGui::BeginChild("Cubes", { 0, static_cast<float>(140 * objects.cubes.size()) });
     for (int i = 0; i < objects.cubes.size(); ++i) {
         if (i > 0) ImGui::Separator();
-        ImGui::BeginChild("Cube" + i, { 0, 130 });
+        ImGui::BeginChild("Cube" + i, { 0, 140 });
 
         Cube& cubes = objects.cubes[i];
         glm::vec3& position = cubes.center;
         glm::vec3& rotation = cubes.rotation;
-        glm::vec3& halfSize = cubes.halfSize;
+        glm::vec3& halfSize = cubes.size;
         glm::vec3& color = cubes.color;
 
         ImGui::DragFloat3("Position", &position[0], 0.05f);
         ImGui::DragFloat3("Rotation", &rotation[0], 0.05f);
-        ImGui::DragFloat3("HalfSize", &halfSize[0], 0.05f);
+        ImGui::DragFloat3("Size", &halfSize[0], 0.05f);
         ImGui::ColorEdit3("Color", &color[0]);
         ImGui::DragFloat("Rounding", &cubes.rounding, 0.01f, 0.0f);
         ImGui::DragFloat("Reflection", &cubes.reflection, 0.01f, 0.0f, 1.0f);
@@ -151,10 +151,10 @@ void GUI::myObjects()
     ImGui::EndChild();
 
     ImGui::SeparatorText("Capsules");
-    ImGui::BeginChild("Capsules", { 0, static_cast<float>(130 * objects.capsules.size()) });
+    ImGui::BeginChild("Capsules", { 0, static_cast<float>(160 * objects.capsules.size()) });
     for (int i = 0; i < objects.capsules.size(); ++i) {
         if (i > 0) ImGui::Separator();
-        ImGui::BeginChild("Capsule" + i, { 0, 130 });
+        ImGui::BeginChild("Capsule" + i, { 0, 160 });
 
         Capsule& capsule = objects.capsules[i];
         glm::vec3& position = capsule.center;

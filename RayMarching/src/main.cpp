@@ -91,8 +91,11 @@ int main() {
 	objects.addSphere({ 1.0f, {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 1.0f}, 0.0f });
 	objects.addSphere({ 0.58f, { 1.0f, 0.5f, -3.0f }, { 1.0f, 0.0f, 0.0f }, 0.0f });
 
-	objects.addCube({ { 0.0f, -1.5f, 0.0f }, { 0.0f, 0.0f, 0.0f }, {10.0f, 0.5f, 10.0f }, { 0.0f, 1.0f, 0.0f }, 0.0f, 0.0f });
-	objects.addCube({ { -2.5f, 0.5f, 2.0f }, { 0.0f, 0.0f, 0.0f }, {0.5f, 0.5f, 0.5f }, { 1.0f, 0.0f, 1.0f }, 0.0f, 0.5f });
+	objects.addCube({ { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, {9.88f, 0.2f, 15.03f }, { 0.501f, 0.361f, 0.204f }, 0.0f, 0.0f });
+	objects.addCube({ { -8.775f, 3.2f, 14.825f }, { 0.0f, 0.0f, 0.0f }, {1.100f, 3.0f, 0.2f }, { 0.854f, 0.961f, 0.322f }, 0.0f, 0.0f });
+	objects.addCube({ { -6.170, 3.2f, 14.825f }, { 0.0f, 0.0f, 0.0f }, {1.500f, 1.47f, 0.2f }, { 1.0f, 1.0f, 1.0f }, 0.0f, 0.0f });
+	objects.addCube({ { -2.650, 3.2f, 14.825f }, { 0.0f, 0.0f, 0.0f }, {2.00f, 3.0f, 0.2f }, { 0.854f, 0.961f, 0.322f }, 0.0f, 0.0f });
+	objects.addCube({ { -6.170, 5.450, 14.825f }, { 0.0f, 0.0f, 0.0f }, {1.500, 0.750, 0.2f }, { 0.854f, 0.961f, 0.322f }, 0.0f, 0.0f });
 
 	objects.addCapsule({ { 0.0f, 2.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f,1.0f,-2.5f }, { 1.0f,1.0f,2.5f }, { 1.0f,1.0f,1.0f }, 0.0f, 1.0f });
 
@@ -136,9 +139,11 @@ int main() {
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		shader.use();
-
-		objects.cubes[1].center.y = sin(time) + 1.5f;
-		objects.capsules[0].rotation.x = time * 10.0f;
+		/*
+		for (Cube& cube : objects.cubes) {
+			cube.center.x *= rand() % (int)time;
+			cube.rotation.z *= rand() % (int)sin(time);
+		}*/
 
 		objects.update(shader);
 		lightSys.update(shader);

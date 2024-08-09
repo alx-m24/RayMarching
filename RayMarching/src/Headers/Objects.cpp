@@ -40,7 +40,7 @@ void Objects::update(Shader& shader)
 		std::string name = "cubes[" + std::to_string(i) + "].";
 		Cube& cube = cubes[i];
 
-		shader.setVec3(name + "halfSize", cube.halfSize);
+		shader.setVec3(name + "halfSize", cube.size);
 		shader.setFloat(name + "reflection", cube.reflection);
 		shader.setFloat(name + "rounding", cube.rounding);
 		shader.setVec3(name + "color", cube.color);

@@ -74,7 +74,7 @@ struct Intersect {
 
 #define LIGHT_NUM 2
 #define SPHERE_NUM 2
-#define CUBE_NUM 2
+#define CUBE_NUM 5
 #define CAPSULE_NUM 1
 
 // Objects
@@ -111,7 +111,7 @@ Intersect sceneDist(vec3 pos, vec3 direction);
 Intersect sceneDist(vec3 pos, vec3 direction, int type, int idx);
 
 void main() {
-	vec2 aspectRatio = vec2(iResolution.x / iResolution.y, 1.0) * 0.5;
+	vec2 aspectRatio = vec2(iResolution.x / iResolution.y, 1.0) * 0.5f;
 	vec2 uv = 2.0 * gl_FragCoord.xy / iResolution - 1.0;
 	uv *= aspectRatio;
     vec3 rayDirection = normalize(vec3(uv, -1.0)) * viewMatrix;

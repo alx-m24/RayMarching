@@ -14,7 +14,7 @@ struct Cube {
 	glm::vec3 center = glm::vec3(0.0f);
 	glm::vec3 rotation = glm::vec3(0.0f);
 
-	glm::vec3 halfSize = glm::vec3(0.5f);
+	glm::vec3 size = glm::vec3(1.0f);
 	glm::vec3 color = glm::vec3(1.0f);
 	float reflection = 0.0f;
 	float rounding = 0.0f;
