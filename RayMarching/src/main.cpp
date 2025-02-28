@@ -88,26 +88,24 @@ int main() {
 
 #pragma region Objects
 	Objects objects;
-	objects.addSphere({ 1.0f, {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 1.0f}, 0.0f });
-	objects.addSphere({ 0.58f, { 1.0f, 0.5f, -3.0f }, { 1.0f, 0.0f, 0.0f }, 0.0f });
+	objects.addSphere({ 1.0f, {-2.5f, 2.150f, -2.100f}, {0.0f, 1.0f, 1.0f}, 0.340f });
+	objects.addSphere({ 0.58f, { 0.7f, 1.9f, -7.2f }, { 1.0f, 0.0f, 0.0f }, 0.210f });
 
-	objects.addCube({ { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, {9.88f, 0.2f, 15.03f }, { 0.501f, 0.361f, 0.204f }, 0.0f, 0.0f });
-	objects.addCube({ { -8.775f, 3.2f, 14.825f }, { 0.0f, 0.0f, 0.0f }, {1.100f, 3.0f, 0.2f }, { 0.854f, 0.961f, 0.322f }, 0.0f, 0.0f });
-	objects.addCube({ { -6.170, 3.2f, 14.825f }, { 0.0f, 0.0f, 0.0f }, {1.500f, 1.47f, 0.2f }, { 1.0f, 1.0f, 1.0f }, 0.0f, 0.0f });
-	objects.addCube({ { -2.650, 3.2f, 14.825f }, { 0.0f, 0.0f, 0.0f }, {2.00f, 3.0f, 0.2f }, { 0.854f, 0.961f, 0.322f }, 0.0f, 0.0f });
-	objects.addCube({ { -6.170, 5.450, 14.825f }, { 0.0f, 0.0f, 0.0f }, {1.500, 0.750, 0.2f }, { 0.854f, 0.961f, 0.322f }, 0.0f, 0.0f });
+	objects.addCube({ { -0.750f, 3.38f, 4.0f }, { 0.0f, 0.0f, 0.0f }, {1.0f, 1.0f, 1.0f }, { 0.501f, 0.361f, 0.204f }, 0.190f, 0.690f });
+	objects.addCube({ { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, {9.88f, 0.2f, 15.03f }, { 0.568f, 0.568f, 0.568f }, 0.17f, 0.0f });
 
-	objects.addCapsule({ { 0.0f, 2.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f,1.0f,-2.5f }, { 1.0f,1.0f,2.5f }, { 1.0f,1.0f,1.0f }, 0.0f, 1.0f });
+	objects.addCapsule({ { 4.8f, 2.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f,1.0f,-2.5f }, { 1.0f,1.0f,2.5f }, { 0.352f,1.0f,0.0f }, 0.4f, 1.0f });
 
 	LightingSystem lightSys;
-	lightSys.addPointLight(PointLight({ 0.0f, 5.0f, 0.0f }));
-	lightSys.addPointLight(PointLight({ 3.0f, 5.0f, 1.0f }));
+	lightSys.addPointLight(PointLight({ -8.85f, 1.8f, -9.6f }));
+	lightSys.addPointLight(PointLight({ 7.25f, 5.0f, 10.0f }));
 	
 	Camera camera(window, shader);
+	camera.Position = glm::vec3(9.0, 12.0f, -15.0f);
+	camera.front = glm::vec3(-0.5f, -0.4f, 0.7f);
 #pragma endregion
-
 #pragma region GUI
-	GUI gui(window, camera, objects, lightSys);
+	//GUI gui(window, camera, objects, lightSys);
 #pragma endregion
 
 #pragma region Time Variables
@@ -129,7 +127,7 @@ int main() {
 		shader.use();
 		camera.update(window, shader, dt);
 
-		gui.update();
+		//gui.update();
 
 		processInput(window);
 #pragma endregion
@@ -139,11 +137,37 @@ int main() {
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		shader.use();
-		/*
-		for (Cube& cube : objects.cubes) {
-			cube.center.x *= rand() % (int)time;
-			cube.rotation.z *= rand() % (int)sin(time);
-		}*/
+		
+		int i = 0;
+		for (Sphere& sphere : objects.spheres) {
+			sphere.center.y = sin(time + i * 2) + 3.0f;
+			++i;
+		}
+
+		Cube& cube = objects.cubes[0];
+		cube.rotation.z += dt * 45.0f;
+		cube.rotation.y += dt * -25.0f;
+
+		objects.capsules[0].radius = 0.8f * sin(time) + 1.0f;
+
+		i = 0;
+		for (PointLight& light : lightSys.pointLights) {
+			light.position.x = sin(time + i * glm::radians(180.0f)) * 5.0f;
+			if (i == 0) {
+				light.position.y = sin(2.0f * time) * 2.0f + 3.8f;
+			}
+			++i;
+		}
+
+		glm::vec3 center = glm::vec3(0.0f);
+		float radius = 15.0f;
+		float angle = time * 10.0f;
+
+		camera.Position.x = radius * cos(glm::radians(angle));
+		camera.Position.y = sin(glm::radians(angle)) * 8.0f + 10.0f;
+		camera.Position.z = radius * sin(glm::radians(angle));
+
+		camera.front = glm::normalize(center - camera.Position);
 
 		objects.update(shader);
 		lightSys.update(shader);
@@ -151,7 +175,7 @@ int main() {
 		glBindVertexArray(VAO);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
-		gui.render();
+		//gui.render();
 
 		glfwSwapBuffers(window);
 #pragma endregion

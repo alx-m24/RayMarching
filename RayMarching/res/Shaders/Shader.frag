@@ -74,7 +74,7 @@ struct Intersect {
 
 #define LIGHT_NUM 2
 #define SPHERE_NUM 2
-#define CUBE_NUM 5
+#define CUBE_NUM 2
 #define CAPSULE_NUM 1
 
 // Objects

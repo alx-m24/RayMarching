@@ -3,7 +3,7 @@
 #include "Shaders/Shader.hpp"
 
 struct DirectionalLight {
-	glm::vec3 direction = { 0.2f, -1.0f, -0.15 };
+	glm::vec3 direction = { -0.426f, -1.0f, -0.307 };
 	glm::vec3 ambient = { 0.06f, 0.06f, 0.06f };
 	glm::vec3 diffuse = { 0.6f, 0.6f, 0.6f };
 	glm::vec3 specular = { 0.0f, 0.0f, 0.0f };

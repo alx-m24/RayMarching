@@ -4,8 +4,8 @@
 
 // Inputs and outputs
 namespace IO {
-	extern unsigned int SCR_WIDTH;
-	extern unsigned int SCR_HEIGHT;
+	extern int SCR_WIDTH;
+	extern int SCR_HEIGHT;
 	extern float xoffset;
 	extern float yoffset;
 

@@ -1,7 +1,7 @@
 #include "Input.hpp"
 
-unsigned int IO::SCR_WIDTH = 1000;
-unsigned int IO::SCR_HEIGHT = 600;
+int IO::SCR_WIDTH = 1000;
+int IO::SCR_HEIGHT = 600;
 float IO::xoffset = 0.0f;
 float IO::yoffset = 0.0f;
 bool IO::firstMouse = true;
